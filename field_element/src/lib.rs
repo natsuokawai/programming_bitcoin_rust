@@ -1,7 +1,7 @@
 use std::fmt;
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Mul, Sub};
 
-#[derive(Debug,PartialEq)]
+#[derive(Debug, PartialEq)]
 struct FieldElement {
     num: i32,
     prime: i32,
@@ -19,10 +19,7 @@ impl FieldElement {
             panic!("Num {} not in field range 0 to {}", num, prime);
         }
 
-        FieldElement {
-            num,
-            prime,
-        }
+        FieldElement { num, prime }
     }
 }
 
@@ -60,7 +57,10 @@ impl Mul for FieldElement {
             return Err("Cannot add two numbers in different Fields");
         }
 
-        Ok(FieldElement::new((self.num * other.num).rem_euclid(self.prime), self.prime))
+        Ok(FieldElement::new(
+            (self.num * other.num).rem_euclid(self.prime),
+            self.prime,
+        ))
     }
 }
 
