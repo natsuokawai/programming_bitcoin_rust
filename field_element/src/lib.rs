@@ -1,6 +1,5 @@
 use std::fmt;
-use std::ops::Add;
-use std::ops::Sub;
+use std::ops::{Add, Sub, Mul};
 
 #[derive(Debug,PartialEq)]
 struct FieldElement {
@@ -53,6 +52,18 @@ impl Sub for FieldElement {
     }
 }
 
+impl Mul for FieldElement {
+    type Output = Result<Self, &'static str>;
+
+    fn mul(self, other: Self) -> Result<Self, &'static str> {
+        if self.prime != other.prime {
+            return Err("Cannot add two numbers in different Fields");
+        }
+
+        Ok(FieldElement::new((self.num * other.num).rem_euclid(self.prime), self.prime))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -91,5 +102,13 @@ mod tests {
         let b = FieldElement::new(13, 19);
         let c = FieldElement::new(12, 19);
         assert_eq!(a - b, Ok(c));
+    }
+
+    #[test]
+    fn mul_test() {
+        let a = FieldElement::new(8, 19);
+        let b = FieldElement::new(17, 19);
+        let c = FieldElement::new(3, 19);
+        assert_eq!(a * b, Ok(c));
     }
 }
