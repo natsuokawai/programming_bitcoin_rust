@@ -1,4 +1,6 @@
 use std::fmt;
+use std::ops::Add;
+use std::ops::Sub;
 
 #[derive(Debug,PartialEq)]
 struct FieldElement {
@@ -25,6 +27,31 @@ impl FieldElement {
     }
 }
 
+impl Add for FieldElement {
+    type Output = Result<Self, &'static str>;
+
+    fn add(self, other: Self) -> Result<Self, &'static str> {
+        if self.prime != other.prime {
+            return Err("Cannot add two numbers in different Fields");
+        }
+
+        let new_num = (self.num + other.num).rem_euclid(self.prime);
+        Ok(FieldElement::new(new_num, self.prime))
+    }
+}
+
+impl Sub for FieldElement {
+    type Output = Result<Self, &'static str>;
+
+    fn sub(self, other: Self) -> Result<Self, &'static str> {
+        if self.prime != other.prime {
+            return Err("Cannot add two numbers in different Fields");
+        }
+
+        let new_other = FieldElement::new((-1 * other.num).rem_euclid(self.prime), self.prime);
+        self + new_other
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -41,5 +68,28 @@ mod tests {
         let a = FieldElement::new(7, 13);
         let b = FieldElement::new(6, 13);
         assert_ne!(a, b);
+    }
+
+    #[test]
+    fn add_test() {
+        let a = FieldElement::new(7, 13);
+        let b = FieldElement::new(12, 13);
+        let c = FieldElement::new(6, 13);
+        assert_eq!(a + b, Ok(c));
+    }
+
+    #[test]
+    fn add_test2() {
+        let a = FieldElement::new(6, 19);
+        let b = FieldElement::new(12, 13);
+        assert_eq!(a + b, Err("Cannot add two numbers in different Fields"));
+    }
+
+    #[test]
+    fn sub_test() {
+        let a = FieldElement::new(6, 19);
+        let b = FieldElement::new(13, 19);
+        let c = FieldElement::new(12, 19);
+        assert_eq!(a - b, Ok(c));
     }
 }
