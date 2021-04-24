@@ -38,7 +38,8 @@ impl FieldElement {
             }
             result
         };
-        let new_num = mod_pow(self.num, num, self.prime).rem_euclid(self.prime);
+        let n = num.rem_euclid(self.prime - 1);
+        let new_num = mod_pow(self.num, n, self.prime).rem_euclid(self.prime);
         FieldElement::new(new_num, self.prime)
     }
 }
@@ -147,5 +148,12 @@ mod tests {
         let b = FieldElement::new(7, 19);
         let c = FieldElement::new(3, 19);
         assert_eq!(a / b, c);
+    }
+
+    #[test]
+    fn pow_test2() {
+        let a = FieldElement::new(17, 31);
+        let b = FieldElement::new(29, 31);
+        assert_eq!(a.pow(-3), b);
     }
 }
