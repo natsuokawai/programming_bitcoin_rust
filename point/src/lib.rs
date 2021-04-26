@@ -1,4 +1,5 @@
 use std::fmt;
+use std::ops::Add;
 
 #[derive(PartialEq, Debug)]
 enum Coordinate {
@@ -47,6 +48,20 @@ impl Point {
     }
 }
 
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        match (&self.x, &other.x) {
+            (Coordinate::Inf, _) => other,
+            (_, Coordinate::Inf) => self,
+            (_, _) => {
+                self // wip
+            }
+        }
+    }
+}
+
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -65,5 +80,13 @@ mod tests {
     fn equality_test() {
         let p = Point::new(Coordinate::Num(18), Coordinate::Num(77), 5, 7);
         assert_eq!(p, p);
+    }
+
+    #[test]
+    fn add_infinity_point_test() {
+        let p = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
+        let inf = Point::new(Coordinate::Inf, Coordinate::Inf, 5, 7);
+        let p_ = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
+        assert_eq!(p + inf, p_);
     }
 }
