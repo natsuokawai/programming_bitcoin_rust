@@ -7,6 +7,15 @@ enum Coordinate {
     Inf,
 }
 
+impl Coordinate {
+    fn num(&self) -> i32 {
+        match self {
+            Coordinate::Num(x) => *x,
+            Coordinate::Inf => panic!("not a number"),
+        }
+    }
+}
+
 impl fmt::Display for Coordinate {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -56,7 +65,14 @@ impl Add for Point {
             (Coordinate::Inf, _) => other,
             (_, Coordinate::Inf) => self,
             (_, _) => {
-                self // wip
+                let x1 = self.x.num();
+                let y1 = self.y.num();
+                let x2 = other.x.num();
+                let y2 = other.x.num();
+                let s = (y2 - y1) / (x2 - x1);
+                let x3 = s.pow(2) - x1 - x2;
+                let y3 = s * (x1 - x3) - y1;
+                Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b)
             }
         }
     }
@@ -88,5 +104,13 @@ mod tests {
         let inf = Point::new(Coordinate::Inf, Coordinate::Inf, 5, 7);
         let p_ = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
         assert_eq!(p + inf, p_);
+    }
+
+    #[test]
+    fn add_when_x1_ne_x2() {
+        let p1 = Point::new(Coordinate::Num(2), Coordinate::Num(5), 5, 7);
+        let p2 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
+        let p3 = Point::new(Coordinate::Num(3), Coordinate::Num(-7), 5, 7);
+        assert_eq!(p1 + p2, p3);
     }
 }
