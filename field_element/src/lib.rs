@@ -44,10 +44,10 @@ impl FieldElement {
     }
 }
 
-impl Add for FieldElement {
-    type Output = Self;
+impl<'a, 'b> Add<&'b FieldElement> for &'a FieldElement {
+    type Output = FieldElement;
 
-    fn add(self, other: Self) -> Self {
+    fn add(self, other: &'b FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
@@ -57,23 +57,23 @@ impl Add for FieldElement {
     }
 }
 
-impl Sub for FieldElement {
-    type Output = Self;
+impl<'a, 'b> Sub<&'b FieldElement> for &'a FieldElement  {
+    type Output = FieldElement;
 
-    fn sub(self, other: Self) -> Self {
+    fn sub(self, other: &'b FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
 
         let new_other = FieldElement::new((-1 * other.num).rem_euclid(self.prime), self.prime);
-        self + new_other
+        self + &new_other
     }
 }
 
-impl Mul for FieldElement {
-    type Output = Self;
+impl<'a, 'b> Mul<&'b FieldElement> for &'a FieldElement  {
+    type Output = FieldElement;
 
-    fn mul(self, other: Self) -> Self {
+    fn mul(self, other: &'b FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
@@ -82,15 +82,15 @@ impl Mul for FieldElement {
     }
 }
 
-impl Div for FieldElement {
-    type Output = Self;
+impl<'a, 'b> Div<&'b FieldElement> for &'a FieldElement  {
+    type Output = FieldElement;
 
-    fn div(self, other: Self) -> Self {
+    fn div(self, other: &'b FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        other.pow(self.prime - 2) * self
+        &other.pow(self.prime - 2) * self
     }
 }
 
@@ -116,7 +116,7 @@ mod tests {
         let a = FieldElement::new(7, 13);
         let b = FieldElement::new(12, 13);
         let c = FieldElement::new(6, 13);
-        assert_eq!(a + b, c);
+        assert_eq!(&a + &b, c);
     }
 
     #[test]
@@ -124,7 +124,7 @@ mod tests {
         let a = FieldElement::new(6, 19);
         let b = FieldElement::new(13, 19);
         let c = FieldElement::new(12, 19);
-        assert_eq!(a - b, c);
+        assert_eq!(&a - &b, c);
     }
 
     #[test]
@@ -132,7 +132,7 @@ mod tests {
         let a = FieldElement::new(8, 19);
         let b = FieldElement::new(17, 19);
         let c = FieldElement::new(3, 19);
-        assert_eq!(a * b, c);
+        assert_eq!(&a * &b, c);
     }
 
     #[test]
@@ -147,7 +147,7 @@ mod tests {
         let a = FieldElement::new(2, 19);
         let b = FieldElement::new(7, 19);
         let c = FieldElement::new(3, 19);
-        assert_eq!(a / b, c);
+        assert_eq!(&a / &b, c);
     }
 
     #[test]
