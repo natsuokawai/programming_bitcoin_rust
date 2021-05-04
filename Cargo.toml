@@ -1,5 +1,5 @@
 [package]
-name = "field_element"
+name = "programming_bitcoin_rust"
 version = "0.1.0"
 authors = ["natsuokawai <kawai.natsuo@gmail.com>"]
 edition = "2018"

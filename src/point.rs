@@ -2,7 +2,7 @@ use std::fmt;
 use std::ops::Add;
 
 #[derive(PartialEq, Debug)]
-enum Coordinate {
+pub enum Coordinate {
     Num(i32),
     Inf,
 }
@@ -30,11 +30,11 @@ impl fmt::Display for Coordinate {
 }
 
 #[derive(PartialEq, Debug)]
-struct Point {
-    a: i32,
-    b: i32,
-    x: Coordinate,
-    y: Coordinate,
+pub struct Point {
+    pub a: i32,
+    pub b: i32,
+    pub x: Coordinate,
+    pub y: Coordinate,
 }
 
 impl Point {

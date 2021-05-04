@@ -2,9 +2,9 @@ use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Debug, PartialEq)]
-struct FieldElement {
-    num: i32,
-    prime: i32,
+pub struct FieldElement {
+    pub num: i32,
+    pub prime: i32,
 }
 
 impl fmt::Display for FieldElement {
