@@ -1,16 +1,17 @@
 use std::fmt;
 use std::ops::Add;
+use crate::field_element::FieldElement;
 
 #[derive(PartialEq, Debug)]
 pub enum Coordinate {
-    Num(i32),
+    Num(FieldElement),
     Inf,
 }
 
 impl Coordinate {
-    fn num(&self) -> i32 {
+    fn num(self) -> FieldElement {
         match self {
-            Coordinate::Num(x) => *x,
+            Coordinate::Num(x) => x,
             Coordinate::Inf => panic!("not a number"),
         }
     }
@@ -31,14 +32,14 @@ impl fmt::Display for Coordinate {
 
 #[derive(PartialEq, Debug)]
 pub struct Point {
-    pub a: i32,
-    pub b: i32,
+    pub a: FieldElement,
+    pub b: FieldElement,
     pub x: Coordinate,
     pub y: Coordinate,
 }
 
 impl Point {
-    fn new(x: Coordinate, y: Coordinate, a: i32, b: i32) -> Self {
+    fn new(x: Coordinate, y: Coordinate, a: FieldElement, b: FieldElement) -> Self {
         let result = Point { a, b, x, y };
 
         if !result.is_on_curve() {
@@ -51,7 +52,7 @@ impl Point {
     fn is_on_curve(&self) -> bool {
         match (&self.x, &self.y) {
             (Coordinate::Inf, Coordinate::Inf) => true,
-            (Coordinate::Num(x), Coordinate::Num(y)) => y.pow(2) == x.pow(3) + self.a * x + self.b,
+            (Coordinate::Num(x), Coordinate::Num(y)) => y.pow(2) == &(&x.pow(3) + &(&self.a * &x)) + &self.b,
             (_, _) => false,
         }
     }
@@ -66,24 +67,25 @@ impl Add for Point {
             (Coordinate::Inf, _) => other,
             (_, Coordinate::Inf) => self,
             (_, _) => {
-                let x1 = self.x.num();
-                let y1 = self.y.num();
-                let x2 = other.x.num();
-                let y2 = other.y.num();
+                let x1 = &self.x.num();
+                let y1 = &self.y.num();
+                let x2 = &other.x.num();
+                let y2 = &other.y.num();
+                let p = x1.prime;
 
                 // Intersection of a line passing through x1 and x2 with an elliptic curve
                 if x1 != x2 {
-                    let s = (y2 - y1) / (x2 - x1);
-                    let x3 = s.pow(2) - x1 - x2;
-                    let y3 = s * (x1 - x3) - y1;
+                    let s = &(y2 - y1) / &(x2 - x1);
+                    let x3 = &(&s.pow(2) - x1) - x2;
+                    let y3 = &(&s * &(x1 - &x3)) - y1;
                     return Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b);
                 }
 
                 // When it is a tangent line
-                if y1 == y2 && y1 != 0 {
-                    let s = (3 * x1.pow(2) + self.a) / (2 * y1);
-                    let x3 = s.pow(2) - 2 * x1;
-                    let y3 = s * (x1 - x3) - y1;
+                if y1 == y2 && y1 != &FieldElement::new(0, p) {
+                    let s = &(&(&FieldElement::new(3, p) * &x1.pow(2)) + &self.a) / &(&FieldElement::new(2, p) * y1);
+                    let x3 = &(&s.pow(2) - &FieldElement::new(2, p)) * x1;
+                    let y3 = &(&s * &(x1 - &x3)) - y1;
                     return Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b);
                 }
 
@@ -110,47 +112,12 @@ mod tests {
 
     #[test]
     fn equality_test() {
-        let p = Point::new(Coordinate::Num(18), Coordinate::Num(77), 5, 7);
+        let prime = 223;
+        let x = Coordinate::Num(FieldElement::new(192, prime));
+        let y = Coordinate::Num(FieldElement::new(105, prime));
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let p = Point::new(x, y, a, b);
         assert_eq!(p, p);
-    }
-
-    #[test]
-    fn add_infinity_point_test() {
-        let p1 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        let p2 = Point::new(Coordinate::Inf, Coordinate::Inf, 5, 7);
-        let p3 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        assert_eq!(p1 + p2, p3);
-    }
-
-    #[test]
-    fn add_same_point_test() {
-        let p1 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        let p2 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        let p3 = Point::new(Coordinate::Num(18), Coordinate::Num(77), 5, 7);
-        assert_eq!(p1 + p2, p3);
-    }
-
-    #[test]
-    fn add_same_point_and_y_is_0_test() {
-        let p1 = Point::new(Coordinate::Num(-1), Coordinate::Num(0), 5, 6);
-        let p2 = Point::new(Coordinate::Num(-1), Coordinate::Num(0), 5, 6);
-        let p3 = Point::new(Coordinate::Inf, Coordinate::Inf, 5, 6);
-        assert_eq!(p1 + p2, p3);
-    }
-
-    #[test]
-    fn add_when_x1_eq_x2_test() {
-        let p1 = Point::new(Coordinate::Num(-1), Coordinate::Num(1), 5, 7);
-        let p2 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        let p3 = Point::new(Coordinate::Inf, Coordinate::Inf, 5, 7);
-        assert_eq!(p1 + p2, p3);
-    }
-
-    #[test]
-    fn add_when_x1_ne_x2() {
-        let p1 = Point::new(Coordinate::Num(2), Coordinate::Num(5), 5, 7);
-        let p2 = Point::new(Coordinate::Num(-1), Coordinate::Num(-1), 5, 7);
-        let p3 = Point::new(Coordinate::Num(3), Coordinate::Num(-7), 5, 7);
-        assert_eq!(p1 + p2, p3);
     }
 }
