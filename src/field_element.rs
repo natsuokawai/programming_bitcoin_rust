@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FieldElement {
     pub num: i32,
     pub prime: i32,
@@ -44,10 +44,41 @@ impl FieldElement {
     }
 }
 
-impl<'a, 'b> Add<&'b FieldElement> for &'a FieldElement {
+macro_rules! forward_ref_binop {
+    (impl $imp:ident, $method:ident for $t:ty) => {
+        impl<'a> $imp<$t> for &'a $t {
+            type Output = <$t as $imp<$t>>::Output;
+
+            #[inline]
+            fn $method(self, other: $t) -> <$t as $imp<$t>>::Output {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl $imp<&$t> for $t {
+            type Output = <$t as $imp<$t>>::Output;
+
+            #[inline]
+            fn $method(self, other: &$t) -> <$t as $imp<$t>>::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl $imp<&$t> for &$t {
+            type Output = <$t as $imp<$t>>::Output;
+
+            #[inline]
+            fn $method(self, other: &$t) -> <$t as $imp<$t>>::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+    };
+}
+
+impl Add for FieldElement {
     type Output = FieldElement;
 
-    fn add(self, other: &'b FieldElement) -> FieldElement {
+    fn add(self, other: FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
@@ -56,24 +87,26 @@ impl<'a, 'b> Add<&'b FieldElement> for &'a FieldElement {
         FieldElement::new(new_num, self.prime)
     }
 }
+forward_ref_binop! { impl Add, add for FieldElement }
 
-impl<'a, 'b> Sub<&'b FieldElement> for &'a FieldElement  {
+impl Sub for FieldElement {
     type Output = FieldElement;
 
-    fn sub(self, other: &'b FieldElement) -> FieldElement {
+    fn sub(self, other: FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
 
         let new_other = FieldElement::new((-1 * other.num).rem_euclid(self.prime), self.prime);
-        self + &new_other
+        self + new_other
     }
 }
+forward_ref_binop! { impl Sub, sub for FieldElement }
 
-impl<'a, 'b> Mul<&'b FieldElement> for &'a FieldElement  {
+impl Mul for FieldElement {
     type Output = FieldElement;
 
-    fn mul(self, other: &'b FieldElement) -> FieldElement {
+    fn mul(self, other: FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
@@ -81,18 +114,20 @@ impl<'a, 'b> Mul<&'b FieldElement> for &'a FieldElement  {
         FieldElement::new((self.num * other.num).rem_euclid(self.prime), self.prime)
     }
 }
+forward_ref_binop! { impl Mul, mul for FieldElement }
 
-impl<'a, 'b> Div<&'b FieldElement> for &'a FieldElement  {
+impl Div for FieldElement {
     type Output = FieldElement;
 
-    fn div(self, other: &'b FieldElement) -> FieldElement {
+    fn div(self, other: FieldElement) -> FieldElement {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        &other.pow(self.prime - 2) * self
+        other.pow(self.prime - 2) * self
     }
 }
+forward_ref_binop! { impl Div, div for FieldElement }
 
 #[cfg(test)]
 mod tests {

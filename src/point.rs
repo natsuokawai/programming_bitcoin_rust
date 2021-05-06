@@ -1,6 +1,6 @@
+use crate::field_element::FieldElement;
 use std::fmt;
 use std::ops::Add;
-use crate::field_element::FieldElement;
 
 #[derive(PartialEq, Debug)]
 pub enum Coordinate {
@@ -52,7 +52,7 @@ impl Point {
     fn is_on_curve(&self) -> bool {
         match (&self.x, &self.y) {
             (Coordinate::Inf, Coordinate::Inf) => true,
-            (Coordinate::Num(x), Coordinate::Num(y)) => y.pow(2) == &(&x.pow(3) + &(&self.a * &x)) + &self.b,
+            (Coordinate::Num(x), Coordinate::Num(y)) => y.pow(2) == x.pow(3) + self.a * x + self.b,
             (_, _) => false,
         }
     }
@@ -75,17 +75,18 @@ impl Add for Point {
 
                 // Intersection of a line passing through x1 and x2 with an elliptic curve
                 if x1 != x2 {
-                    let s = &(y2 - y1) / &(x2 - x1);
-                    let x3 = &(&s.pow(2) - x1) - x2;
-                    let y3 = &(&s * &(x1 - &x3)) - y1;
+                    let s = (y2 - y1) / (x2 - x1);
+                    let x3 = &s.pow(2) - x1 - x2;
+                    let y3 = &s * x1 - &x3 - y1;
                     return Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b);
                 }
 
                 // When it is a tangent line
                 if y1 == y2 && y1 != &FieldElement::new(0, p) {
-                    let s = &(&(&FieldElement::new(3, p) * &x1.pow(2)) + &self.a) / &(&FieldElement::new(2, p) * y1);
-                    let x3 = &(&s.pow(2) - &FieldElement::new(2, p)) * x1;
-                    let y3 = &(&s * &(x1 - &x3)) - y1;
+                    let s = (FieldElement::new(3, p) * x1.pow(2) + &self.a)
+                        / (FieldElement::new(2, p) * y1);
+                    let x3 = &s.pow(2) - FieldElement::new(2, p) * x1;
+                    let y3 = &s * (x1 - &x3) - y1;
                     return Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b);
                 }
 
