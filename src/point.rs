@@ -2,7 +2,7 @@ use crate::field_element::FieldElement;
 use std::fmt;
 use std::ops::Add;
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Coordinate {
     Num(FieldElement),
     Inf,
@@ -30,7 +30,7 @@ impl fmt::Display for Coordinate {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Point {
     pub a: FieldElement,
     pub b: FieldElement,
@@ -77,7 +77,7 @@ impl Add for Point {
                 if x1 != x2 {
                     let s = (y2 - y1) / (x2 - x1);
                     let x3 = &s.pow(2) - x1 - x2;
-                    let y3 = &s * x1 - &x3 - y1;
+                    let y3 = &s * (x1 - &x3) - y1;
                     return Point::new(Coordinate::Num(x3), Coordinate::Num(y3), self.a, self.b);
                 }
 
@@ -120,5 +120,36 @@ mod tests {
         let b = FieldElement::new(7, prime);
         let p = Point::new(x, y, a, b);
         assert_eq!(p, p);
+    }
+
+    #[test]
+    fn add_test_1() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let x1 = Coordinate::Num(FieldElement::new(170, prime));
+        let y1 = Coordinate::Num(FieldElement::new(142, prime));
+        let p1 = Point::new(x1, y1, a, b);
+        let x2 = Coordinate::Num(FieldElement::new(60, prime));
+        let y2 = Coordinate::Num(FieldElement::new(139, prime));
+        let p2 = Point::new(x2, y2, a, b);
+        let x3 = Coordinate::Num(FieldElement::new(220, prime));
+        let y3 = Coordinate::Num(FieldElement::new(181, prime));
+        let p3 = Point::new(x3, y3, a, b);
+        assert_eq!(p1 + p2, p3);
+    }
+
+    #[test]
+    fn add_test_2() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let x1 = Coordinate::Num(FieldElement::new(192, prime));
+        let y1 = Coordinate::Num(FieldElement::new(105, prime));
+        let p1 = Point::new(x1, y1, a, b);
+        let x2 = Coordinate::Num(FieldElement::new(49, prime));
+        let y2 = Coordinate::Num(FieldElement::new(71, prime));
+        let p2 = Point::new(x2, y2, a, b);
+        assert_eq!(p1.clone() + p1, p2);
     }
 }
