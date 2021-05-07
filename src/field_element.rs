@@ -1,3 +1,4 @@
+use crate::forward_ref_binop;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
@@ -42,37 +43,6 @@ impl FieldElement {
         let new_num = mod_pow(self.num, n, self.prime).rem_euclid(self.prime);
         FieldElement::new(new_num, self.prime)
     }
-}
-
-macro_rules! forward_ref_binop {
-    (impl $imp:ident, $method:ident for $t:ty) => {
-        impl<'a> $imp<$t> for &'a $t {
-            type Output = <$t as $imp<$t>>::Output;
-
-            #[inline]
-            fn $method(self, other: $t) -> <$t as $imp<$t>>::Output {
-                $imp::$method(*self, other)
-            }
-        }
-
-        impl $imp<&$t> for $t {
-            type Output = <$t as $imp<$t>>::Output;
-
-            #[inline]
-            fn $method(self, other: &$t) -> <$t as $imp<$t>>::Output {
-                $imp::$method(self, *other)
-            }
-        }
-
-        impl $imp<&$t> for &$t {
-            type Output = <$t as $imp<$t>>::Output;
-
-            #[inline]
-            fn $method(self, other: &$t) -> <$t as $imp<$t>>::Output {
-                $imp::$method(*self, *other)
-            }
-        }
-    };
 }
 
 impl Add for FieldElement {

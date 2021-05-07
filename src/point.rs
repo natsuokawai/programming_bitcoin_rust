@@ -1,4 +1,5 @@
 use crate::field_element::FieldElement;
+use crate::forward_ref_binop;
 use std::fmt;
 use std::ops::Add;
 
@@ -96,6 +97,7 @@ impl Add for Point {
         }
     }
 }
+forward_ref_binop! { impl Add, add for Point }
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -150,6 +152,6 @@ mod tests {
         let x2 = Coordinate::Num(FieldElement::new(49, prime));
         let y2 = Coordinate::Num(FieldElement::new(71, prime));
         let p2 = Point::new(x2, y2, a, b);
-        assert_eq!(p1.clone() + p1, p2);
+        assert_eq!(&p1 + p1, p2);
     }
 }
