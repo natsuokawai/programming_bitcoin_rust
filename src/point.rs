@@ -1,7 +1,7 @@
 use crate::field_element::FieldElement;
 use crate::forward_ref_binop;
 use std::fmt;
-use std::ops::Add;
+use std::ops::{Add, Mul};
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Coordinate {
@@ -99,6 +99,18 @@ impl Add for Point {
 }
 forward_ref_binop! { impl Add, add for Point }
 
+impl Mul<Point> for i64 {
+    type Output = Point;
+
+    fn mul(self, other: Point) -> Point {
+        let mut result = Point::new(Coordinate::Inf, Coordinate::Inf, other.a, other.b);
+        for _ in 0..self {
+            result = result + &other;
+        }
+        result
+    }
+}
+
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -153,5 +165,19 @@ mod tests {
         let y2 = Coordinate::Num(FieldElement::new(71, prime));
         let p2 = Point::new(x2, y2, a, b);
         assert_eq!(&p1 + p1, p2);
+    }
+
+    #[test]
+    fn scalar_multiplication_test() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let x1 = Coordinate::Num(FieldElement::new(15, prime));
+        let y1 = Coordinate::Num(FieldElement::new(86, prime));
+        let p1 = Point::new(x1, y1, a, b);
+        let x2 = Coordinate::Inf;
+        let y2 = Coordinate::Inf;
+        let p2 = Point::new(x2, y2, a, b);
+        assert_eq!(7 * p1, p2);
     }
 }
