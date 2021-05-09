@@ -103,9 +103,16 @@ impl Mul<Point> for i64 {
     type Output = Point;
 
     fn mul(self, other: Point) -> Point {
+        let mut coef = self;
+        let mut current = other;
         let mut result = Point::new(Coordinate::Inf, Coordinate::Inf, other.a, other.b);
-        for _ in 0..self {
-            result = result + &other;
+        while coef != 0 {
+            if coef & 1 == 1 {
+                result = result + &current;
+            }
+            current = &current + current;
+            coef >>= 1;
+            println!("coef: {}", coef);
         }
         result
     }
