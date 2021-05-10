@@ -4,8 +4,8 @@ use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FieldElement {
-    pub num: i32,
-    pub prime: i32,
+    pub num: i64,
+    pub prime: i64,
 }
 
 impl fmt::Display for FieldElement {
@@ -15,7 +15,7 @@ impl fmt::Display for FieldElement {
 }
 
 impl FieldElement {
-    pub fn new(num: i32, prime: i32) -> Self {
+    pub fn new(num: i64, prime: i64) -> Self {
         if num >= prime || num < 0 {
             panic!("Num {} not in field range 0 to {}", num, prime);
         }
@@ -23,8 +23,8 @@ impl FieldElement {
         FieldElement { num, prime }
     }
 
-    pub fn pow(&self, num: i32) -> Self {
-        let mod_pow = |mut base: i32, mut exp: i32, modulus: i32| {
+    pub fn pow(&self, num: i64) -> Self {
+        let mod_pow = |mut base: i64, mut exp: i64, modulus: i64| {
             if modulus == 1 {
                 return 0;
             }
