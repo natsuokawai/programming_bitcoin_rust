@@ -42,8 +42,7 @@ pub struct Point {
 impl Point {
     fn new(x: Coordinate, y: Coordinate, a: FieldElement, b: FieldElement) -> Self {
         let result = Point { a, b, x, y };
-
-        if !result.is_on_curve() {
+if !result.is_on_curve() {
             panic!("({}, {}) is not on the curve.", result.x, result.y);
         }
 

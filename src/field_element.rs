@@ -1,12 +1,11 @@
 use crate::forward_ref_binop;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
-use bigint::U256;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct FieldElement {
-    pub num: U256,
-    pub prime: U256,
+    pub num: i64,
+    pub prime: i64,
 }
 
 impl fmt::Display for FieldElement {
@@ -16,22 +15,23 @@ impl fmt::Display for FieldElement {
 }
 
 impl FieldElement {
-    pub fn new(num: U256, prime: U256) -> Self {
-        if num >= prime {
+    pub fn new(num: i64, prime: i64) -> Self {
+        if num >= prime || num < 0 {
             panic!("Num {} not in field range 0 to {}", num, prime);
         }
 
         FieldElement { num, prime }
     }
 
-    pub fn pow(&self, num: U256) -> Self {
-        let mod_pow = |mut base: U256, mut exp: U256, modulus: U256| {
-            if modulus == 1.into() {
+    pub fn pow(&self, num: i64) -> Self {
+        let mod_pow = |mut base: i64, mut exp: i64, modulus: i64| {
+            if modulus == 1 {
                 return 0;
             }
-            let mut result: U256 = 1.into();
-            base = base % modulus; while exp > 0.into() {
-                if exp % 2.into() == 1.into() {
+            let mut result: i64 = 1;
+            base = base % modulus;
+            while exp > 0 {
+                if exp % 2 == 1 {
                     result = result * base % modulus;
                 }
                 exp = exp >> 1;
@@ -39,8 +39,8 @@ impl FieldElement {
             }
             result
         };
-        let n = num % (self.prime - 1.into());
-        let new_num = mod_pow(self.num, n, self.prime).into() % self.prime;
+        let n = num.rem_euclid(self.prime - 1);
+        let new_num = mod_pow(self.num, n, self.prime).rem_euclid(self.prime);
         FieldElement::new(new_num, self.prime)
     }
 }
@@ -53,7 +53,7 @@ impl Add for FieldElement {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        let new_num = (self.num + other.num) % self.prime;
+        let new_num = (self.num + other.num).rem_euclid(self.prime);
         FieldElement::new(new_num, self.prime)
     }
 }
@@ -67,7 +67,7 @@ impl Sub for FieldElement {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        let new_other = FieldElement::new((-1.into() * other.num).rem_euclid(self.prime), self.prime);
+        let new_other = FieldElement::new((-1 * other.num).rem_euclid(self.prime), self.prime);
         self + new_other
     }
 }
@@ -81,7 +81,7 @@ impl Mul for FieldElement {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        FieldElement::new((self.num * other.num) % self.prime, self.prime)
+        FieldElement::new((self.num * other.num).rem_euclid(self.prime), self.prime)
     }
 }
 forward_ref_binop! { impl Mul, mul for FieldElement }
@@ -94,7 +94,7 @@ impl Div for FieldElement {
             panic!("Cannot add two numbers in different Fields");
         }
 
-        other.pow(self.prime - 2.into()) * self
+        other.pow(self.prime - 2) * self
     }
 }
 forward_ref_binop! { impl Div, div for FieldElement }
